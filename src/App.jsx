@@ -134,6 +134,20 @@ function App() {
       gap: 30px;
     }
 
+    /* Solución de legibilidad para el iframe de Google Maps */
+    .mapa-contenedor {
+      width: 100%;
+      height: 350px;
+      background-color: #ffffff !important; /* Forza fondo blanco detrás del mapa para mantener contraste */
+    }
+    
+    .mapa-contenedor iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background-color: transparent;
+    }
+
     @media (max-width: 768px) {
       .header-nav {
         flex-direction: column !important;
@@ -225,10 +239,11 @@ function App() {
                 <h2 style={{ margin: 0, fontSize: '1.2rem' }}>📍 C.C. Plaza Esmeralda - Local 20</h2>
                 <p style={{ margin: '5px 0 0 0', fontSize: '13px' }}>Parada Caminito, San Diego</p>
               </div>
-              <div style={{ width: '100%', height: '350px' }}>
+              <div className="mapa-contenedor">
                 <iframe 
                   src="https://maps.google.com/maps?q=Centro%20Comercial%20Plaza%20Esmeralda%20San%20Diego&t=&z=16&ie=UTF8&iwloc=&output=embed" 
-                  width="100%" height="100%" style={{ border: 0 }} allowFullScreen="" loading="lazy" referrerPolicy="no-referrer-when-downgrade">
+                  allowFullScreen="" loading="lazy" referrerPolicy="no-referrer-when-downgrade"
+                  title="Mapa Centro Comercial Plaza Esmeralda">
                 </iframe>
               </div>
             </div>
@@ -294,12 +309,10 @@ function App() {
         <div style={{ maxWidth: '1000px', margin: '0 auto', textAlign: 'center' }}>
           <h2 style={{ color: colores.marcaPrimario, marginBottom: '20px', fontSize: '1.8rem' }}>¡Inscríbete hoy mismo!</h2>
           <div className="botones-footer" style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
-            {/* Uso del SVG de WhatsApp en el botón del footer */}
             <a href="https://wa.me/584120298130" target="_blank" rel="noreferrer" style={{ textDecoration: 'none', backgroundColor: '#25D366', color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
               <IconoWhatsapp /> 0412-029.8130
             </a>
             <a href="tel:+584120298130" style={{ textDecoration: 'none', backgroundColor: colores.marcaPrimario, color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>📞 Llamar</a>
-            {/* Uso del SVG de Instagram en el botón del footer */}
             <a href="https://instagram.com/el.salon.de.sandiego" target="_blank" rel="noreferrer" style={{ textDecoration: 'none', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
               <IconoInstagram /> @el.salon.de.sandiego
             </a>
