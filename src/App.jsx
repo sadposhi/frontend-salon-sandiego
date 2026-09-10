@@ -158,7 +158,7 @@ function App() {
         {vistaActual === 'home' && (
           <div style={{ animation: 'fadeIn 0.5s' }}>
             <div style={{ textAlign: 'center', padding: '10px 0 30px 0' }}>
-              <h1 className="titulo-hero" style={{ fontSize: '3rem', color: colores.marcaPrimario, marginBottom: '15px', fontWeight: '900' }}>¡Muy cerca de la UJAP!</h1>
+              <h1 className="titulo-hero" style={{ fontSize: '3rem', color: colores.marcaPrimario, marginBottom: '30px', fontWeight: '900' }}>¡Muy cerca de la UJAP!</h1>
               <p style={{ fontSize: '1.1rem', color: colores.textoSecundario, maxWidth: '800px', margin: '0 auto', lineHeight: '1.6' }}>
                 Asegura tu éxito universitario con nosotros. Clases especializadas con profesores de alto nivel para superar las materias más exigentes de tu carrera.
               </p>
