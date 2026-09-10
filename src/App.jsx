@@ -69,26 +69,61 @@ function App() {
     textoSecundario: modoOscuro ? '#BBBBBB' : '#4A4A4A',
     tarjeta: modoOscuro ? '#1E1E1E' : '#FFFFFF',
     borde: modoOscuro ? '#333333' : '#E0E0E0',
-    marcaPrimario: '#7B1E34', 
+    marcaPrimario: '#7B1E34', // Vinotinto característico
     marcaHover: '#5A1525',
     naranjaMarca: '#F7931E'
   };
 
   const estiloBotonNav = {
-    background: 'none', border: 'none', color: colores.textoPrincipal, fontSize: '15px',
-    cursor: 'pointer', fontWeight: '600', padding: '8px 12px', fontFamily: 'Segoe UI, Roboto, Helvetica, Arial, sans-serif'
+    background: 'none',
+    border: 'none',
+    color: colores.textoPrincipal,
+    fontSize: '16px',
+    cursor: 'pointer',
+    fontWeight: '600',
+    padding: '8px 14px',
+    fontFamily: 'Segoe UI, Roboto, Helvetica, Arial, sans-serif'
   };
 
-  // BLOQUE DE ESTILOS RESPONSIVOS (Ingeniería de adaptación móvil)
+  // ESTILOS RESPONSIVOS Y ANIMACIÓN DEL SUBRAYADO
   const estilosCSS = `
     * {
       box-sizing: border-box;
     }
+
+    /* Estructura base del botón de navegación para la animación */
+    .btn-nav {
+      position: relative;
+      display: inline-block;
+      transition: color 0.3s ease;
+    }
+
+    /* Pseudoelemento para la línea de subrayado vinotinto */
+    .btn-nav::after {
+      content: '';
+      position: absolute;
+      bottom: 0px;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background-color: ${colores.marcaPrimario};
+      border-radius: 2px;
+      transform: scaleX(0);
+      transform-origin: center;
+      transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* Cuando el botón está activo, la línea se abre hacia los lados */
+    .btn-nav.activo::after {
+      transform: scaleX(1);
+    }
+
     .grid-materias {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 30px;
     }
+
     @media (max-width: 768px) {
       .header-nav {
         flex-direction: column !important;
@@ -134,7 +169,7 @@ function App() {
   return (
     <div style={{ backgroundColor: colores.fondo, color: colores.textoPrincipal, minHeight: '100vh', transition: 'all 0.3s ease', fontFamily: 'Segoe UI, Roboto, Helvetica, Arial, sans-serif', paddingBottom: materiasSeleccionadas.length > 0 ? '130px' : '0', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       
-      {/* INYECCIÓN DEL CSS RESPONSIVO */}
+      {/* INYECCIÓN DE CSS */}
       <style>{estilosCSS}</style>
 
       {/* ENCABEZADO */}
@@ -142,11 +177,34 @@ function App() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           <img src="/logo.png" alt="Logo El Salón D' San Diego" style={{ height: '80px', borderRadius: '8px' }} />
         </div>
-        <nav className="botones-nav" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <button style={estiloBotonNav} onClick={function() { setVistaActual('home') }}>Inicio</button>
-          <button style={estiloBotonNav} onClick={function() { setVistaActual('clases') }}>Materias</button>
-          <button style={estiloBotonNav} onClick={function() { setVistaActual('conocenos') }}>Conócenos</button>
-          <button onClick={cambiarTema} style={{ padding: '6px 12px', borderRadius: '20px', border: `1px solid ${colores.marcaPrimario}`, backgroundColor: modoOscuro ? colores.marcaPrimario : 'transparent', color: modoOscuro ? 'white' : colores.marcaPrimario, cursor: 'pointer', fontWeight: 'bold' }}>
+        
+        <nav className="botones-nav" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+          {/* Botones con clase dinámica que evalúa qué vista está seleccionada */}
+          <button 
+            className={`btn-nav ${vistaActual === 'home' ? 'activo' : ''}`} 
+            style={estiloBotonNav} 
+            onClick={function() { setVistaActual('home') }}
+          >
+            Inicio
+          </button>
+          
+          <button 
+            className={`btn-nav ${vistaActual === 'clases' ? 'activo' : ''}`} 
+            style={estiloBotonNav} 
+            onClick={function() { setVistaActual('clases') }}
+          >
+            Materias
+          </button>
+          
+          <button 
+            className={`btn-nav ${vistaActual === 'conocenos' ? 'activo' : ''}`} 
+            style={estiloBotonNav} 
+            onClick={function() { setVistaActual('conocenos') }}
+          >
+            Conócenos
+          </button>
+
+          <button onClick={cambiarTema} style={{ padding: '6px 14px', borderRadius: '20px', border: `1px solid ${colores.marcaPrimario}`, backgroundColor: modoOscuro ? colores.marcaPrimario : 'transparent', color: modoOscuro ? 'white' : colores.marcaPrimario, cursor: 'pointer', fontWeight: 'bold', marginLeft: '5px' }}>
             {modoOscuro ? '☀️ Claro' : '🌙 Oscuro'}
           </button>
         </nav>
@@ -158,7 +216,7 @@ function App() {
         {vistaActual === 'home' && (
           <div style={{ animation: 'fadeIn 0.5s' }}>
             <div style={{ textAlign: 'center', padding: '10px 0 30px 0' }}>
-              <h1 className="titulo-hero" style={{ fontSize: '3rem', color: colores.marcaPrimario, marginBottom: '50px', fontWeight: '900' }}>¡Muy cerca de la UJAP!</h1>
+              <h1 className="titulo-hero" style={{ fontSize: '3rem', color: colores.marcaPrimario, marginBottom: '20px', fontWeight: '900' }}>¡Muy cerca de la UJAP!</h1>
               <p style={{ fontSize: '1.1rem', color: colores.textoSecundario, maxWidth: '800px', margin: '0 auto', lineHeight: '1.6' }}>
                 Asegura tu éxito universitario con nosotros. Clases especializadas con profesores de alto nivel para superar las materias más exigentes de tu carrera.
               </p>
@@ -241,7 +299,7 @@ function App() {
           <div className="botones-footer" style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
             <a href="https://wa.me/584120298130" target="_blank" rel="noreferrer" style={{ textDecoration: 'none', backgroundColor: '#25D366', color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>💬 WhatsApp</a>
             <a href="tel:+584120298130" style={{ textDecoration: 'none', backgroundColor: colores.marcaPrimario, color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>📞 Llamar</a>
-            <a href="https://instagram.com/el.salon.de.sandiego" target="_blank" rel="noreferrer" style={{ textDecoration: 'none', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>📸 Instagram</a>
+            <a href="https://instagram.com/el.salon.de.sandiego" target="_blank" rel="noreferrer" style={{ textDecoration: 'none', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>📸 @el.salon.de.sandiego</a>
           </div>
         </div>
       </footer>
