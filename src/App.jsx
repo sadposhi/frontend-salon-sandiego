@@ -10,7 +10,7 @@ function App() {
   const [categoriasMaterias, setCategoriasMaterias] = useState([]);
   const [profesores, setProfesores] = useState([]);
 
-  // URL DE TU BACKEND EN RENDER (Modifica esta variable si tu enlace es distinto)
+  // URL DE TU BACKEND EN RENDER (Confirmado por tu captura de pantalla)
   const URL_BACKEND = "https://backend-salon-sandiego.onrender.com";
 
   useEffect(function() {
@@ -50,7 +50,7 @@ function App() {
     setMateriasSeleccionadas([]); 
   };
 
-  // Función 1: WhatsApp Específico (Con las materias del carrito)
+  // WhatsApp Específico (Con las materias del carrito)
   const procesarSolicitudEspecifica = function() {
     let mensaje = "¡Hola! Vengo de su página web y estoy interesado(a) en conocer los precios y disponibilidad de horarios para las siguientes materias:\n\n";
     for (let i = 0; i < materiasSeleccionadas.length; i++) {
@@ -61,7 +61,7 @@ function App() {
     window.open("https://wa.me/584120298130?text=" + encodeURIComponent(mensaje), '_blank');
   };
 
-  // ¡NUEVA FUNCIÓN 2!: WhatsApp General (Para el botón flotante)
+  // WhatsApp General (Para el botón flotante)
   const procesarSolicitudGeneral = function() {
     let mensaje = "¡Hola! Vengo de su página web. Me gustaría recibir información general sobre las clases, materias disponibles y sus horarios. ¡Quedo atento(a)!";
     window.open("https://wa.me/584120298130?text=" + encodeURIComponent(mensaje), '_blank');
@@ -127,7 +127,16 @@ function App() {
                 <p style={{ margin: '5px 0 0 0', fontSize: '14px' }}>Parada Caminito, San Diego</p>
               </div>
               <div style={{ width: '100%', height: '400px' }}>
-                <iframe src="https://maps.google.com/maps?q=Centro%20Comercial%20Plaza%20Esmeralda,%20San%20Diego,%20Carabobo&t=&z=16&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style={{ border: 0 }} allowFullScreen="" loading="lazy" referrerPolicy="no-referrer-when-downgrade"></iframe>
+                {/* ENLACE DE MAPA CORREGIDO Y SEGURO (HTTPS) */}
+                <iframe 
+                  src="https://maps.google.com/maps?q=Centro%20Comercial%20Plaza%20Esmeralda%20San%20Diego&t=&z=16&ie=UTF8&iwloc=&output=embed" 
+                  width="100%" 
+                  height="100%" 
+                  style={{ border: 0 }} 
+                  allowFullScreen="" 
+                  loading="lazy" 
+                  referrerPolicy="no-referrer-when-downgrade">
+                </iframe>
               </div>
             </div>
           </div>
@@ -201,27 +210,14 @@ function App() {
         </div>
       </footer>
 
-      {/* NUEVO BOTÓN FLOTANTE GENERAL DE WHATSAPP */}
+      {/* BOTÓN FLOTANTE GENERAL DE WHATSAPP */}
       <div 
         onClick={procesarSolicitudGeneral}
         style={{ 
-          position: 'fixed', 
-          right: '20px', 
-          // Condicional: Sube el botón a 90px si la barra de checkout está visible, si no, se queda en 20px
-          bottom: materiasSeleccionadas.length > 0 ? '90px' : '20px', 
-          backgroundColor: '#25D366', 
-          color: 'white', 
-          width: '60px', 
-          height: '60px', 
-          borderRadius: '50%', 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          fontSize: '32px', 
-          boxShadow: '0 4px 10px rgba(0,0,0,0.3)', 
-          cursor: 'pointer', 
-          zIndex: 1500,
-          transition: 'bottom 0.3s ease'
+          position: 'fixed', right: '20px', bottom: materiasSeleccionadas.length > 0 ? '90px' : '20px', 
+          backgroundColor: '#25D366', color: 'white', width: '60px', height: '60px', borderRadius: '50%', 
+          display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '32px', 
+          boxShadow: '0 4px 10px rgba(0,0,0,0.3)', cursor: 'pointer', zIndex: 1500, transition: 'bottom 0.3s ease'
         }}
         title="Contáctanos por WhatsApp"
       >
