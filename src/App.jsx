@@ -254,7 +254,6 @@ function App() {
     .mapa-contenedor { width: 100%; height: 350px; background-color: #ffffff !important; }
     .mapa-contenedor iframe { width: 100%; height: 100%; border: 0; background-color: transparent; }
     
-    /* Configuración del contenedor principal separada de los estilos en línea */
     .main-content {
       padding-top: 130px;
       padding-left: 15px;
@@ -266,16 +265,48 @@ function App() {
     }
 
     @media (max-width: 768px) {
-      .header-nav { flex-direction: column !important; padding: 15px !important; gap: 15px !important; text-align: center; }
-      .botones-nav { flex-wrap: wrap !important; justify-content: center !important; }
+      .header-nav { 
+        flex-direction: column !important; 
+        padding: 15px 10px 10px 10px !important; 
+        gap: 15px !important; 
+        text-align: center; 
+        position: relative; /* Clave para anclar el botón de tema absolute */
+      }
+      
+      .controles-header { 
+        width: 100%; 
+        justify-content: center !important; 
+      }
+      
+      .botones-nav { 
+        width: 100%; 
+        justify-content: center !important; 
+        gap: 10px !important; 
+      }
+      
+      .btn-nav { 
+        font-size: 15px !important; 
+        padding: 6px 10px !important; 
+      }
+      
+      /* MAGIA AQUÍ: Botón de modo oscuro a la esquina superior derecha solo en tlf */
+      .btn-tema { 
+        position: absolute !important; 
+        top: 20px !important; 
+        right: 15px !important; 
+        padding: 6px 10px !important; 
+        font-size: 0.8rem !important; 
+        margin: 0 !important; 
+      }
+
       .titulo-hero { font-size: 2rem !important; }
       .grid-materias { grid-template-columns: 1fr !important; }
       .barra-checkout { flex-direction: column !important; padding: 15px !important; gap: 10px; text-align: center; }
       .botones-footer { flex-direction: column !important; width: 100%; }
       .botones-footer a { width: 100%; justify-content: center; }
       
-      /* Ajuste dinámico de la altura para celulares */
-      .main-content { padding-top: 240px !important; } 
+      /* Como el header redujo su altura, ajustamos la separación del contenido */
+      .main-content { padding-top: 165px !important; } 
     }
   `;
 
@@ -290,7 +321,7 @@ function App() {
           <IconoSinConexion />
           <h1 style={{ color: colores.marcaPrimario, marginTop: '20px', fontSize: '2rem' }}>Sin conexión a Internet</h1>
           <p style={{ color: colores.textoSecundario, fontSize: '1.2rem', maxWidth: '450px', lineHeight: '1.6' }}>
-            Por favor, revisa tu conexión Wi-Fi o datos móviles. Te estamos esperando para ayudarte a cursar tus materias con éxito!
+            Por favor, revisa tu conexión Wi-Fi o datos móviles. Te estamos esperando para ayudarte a cursar tus materias con éxito.
           </p>
         </div>
       </div>
@@ -335,12 +366,17 @@ function App() {
           <img src="/logo.png" alt="Logo El Salón D' San Diego" style={{ height: '80px', borderRadius: '8px' }} />
         </div>
         
-        <nav className="botones-nav" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-          <button className={`btn-nav ${vistaActual === 'home' ? 'activo' : ''}`} style={estiloBotonNav} onClick={() => cambiarVistaConMemoria('home')}>Inicio</button>
-          <button className={`btn-nav ${vistaActual === 'clases' ? 'activo' : ''}`} style={estiloBotonNav} onClick={() => cambiarVistaConMemoria('clases')}>Materias</button>
-          <button className={`btn-nav ${vistaActual === 'conocenos' ? 'activo' : ''}`} style={estiloBotonNav} onClick={() => cambiarVistaConMemoria('conocenos')}>Conócenos</button>
-          <button onClick={cambiarTema} style={{ padding: '6px 14px', borderRadius: '20px', border: `1px solid ${colores.marcaPrimario}`, backgroundColor: modoOscuro ? colores.marcaPrimario : 'transparent', color: modoOscuro ? 'white' : colores.marcaPrimario, cursor: 'pointer', fontWeight: 'bold', marginLeft: '5px' }}>{modoOscuro ? '☀️ Claro' : '🌙 Oscuro'}</button>
-        </nav>
+        {/* Contenedor extra añadido para independizar la navegación del botón de tema en PC y Móvil */}
+        <div className="controles-header" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+          <nav className="botones-nav" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+            <button className={`btn-nav ${vistaActual === 'home' ? 'activo' : ''}`} style={estiloBotonNav} onClick={() => cambiarVistaConMemoria('home')}>Inicio</button>
+            <button className={`btn-nav ${vistaActual === 'clases' ? 'activo' : ''}`} style={estiloBotonNav} onClick={() => cambiarVistaConMemoria('clases')}>Materias</button>
+            <button className={`btn-nav ${vistaActual === 'conocenos' ? 'activo' : ''}`} style={estiloBotonNav} onClick={() => cambiarVistaConMemoria('conocenos')}>Conócenos</button>
+          </nav>
+          <button className="btn-tema" onClick={cambiarTema} style={{ padding: '6px 14px', borderRadius: '20px', border: `1px solid ${colores.marcaPrimario}`, backgroundColor: modoOscuro ? colores.marcaPrimario : 'transparent', color: modoOscuro ? 'white' : colores.marcaPrimario, cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.3s ease' }}>
+            {modoOscuro ? '☀️ Claro' : '🌙 Oscuro'}
+          </button>
+        </div>
       </header>
 
       {/* CUERPO PRINCIPAL CON CLASE DINÁMICA */}
