@@ -112,8 +112,9 @@ function App() {
   const [categoriasMaterias, setCategoriasMaterias] = useState([]);
   const [profesores, setProfesores] = useState([]);
 
-  // Estado para verificar la conexión a internet
+  // ESTADOS Y REFS AVANZADOS
   const [estaOnline, setEstaOnline] = useState(navigator.onLine);
+  const posicionesScroll = useRef({ home: 0, clases: 0, conocenos: 0 });
 
   // URL DE TU BACKEND EN RENDER
   const URL_BACKEND = "https://backend-salon-sandiego.onrender.com";
@@ -131,6 +132,11 @@ function App() {
       window.removeEventListener('offline', manejarOffline);
     };
   }, []);
+
+  // Efecto que restaura el scroll al cambiar de vista
+  useEffect(() => {
+    window.scrollTo({ top: posicionesScroll.current[vistaActual], behavior: 'instant' });
+  }, [vistaActual]);
 
   useEffect(function() {
     fetch(URL_BACKEND + '/api/materias')
@@ -152,6 +158,11 @@ function App() {
 
   const cambiarTema = function() {
     setModoOscuro(!modoOscuro);
+  };
+
+  const cambiarVistaConMemoria = (nuevaVista) => {
+    posicionesScroll.current[vistaActual] = window.scrollY;
+    setVistaActual(nuevaVista);
   };
 
   const manejarSeleccion = function(materia) {
@@ -189,7 +200,7 @@ function App() {
     textoSecundario: modoOscuro ? '#BBBBBB' : '#4A4A4A',
     tarjeta: modoOscuro ? '#1E1E1E' : '#FFFFFF',
     borde: modoOscuro ? '#333333' : '#E0E0E0',
-    marcaPrimario: '#7B1E34', // Vinotinto característico
+    marcaPrimario: '#7B1E34', 
     marcaHover: '#5A1525',
     naranjaMarca: '#F7931E'
   };
@@ -225,7 +236,17 @@ function App() {
   );
 
   const estilosCSS = `
-    html, body { margin: 0; padding: 0; width: 100%; min-height: 100vh; overflow-x: hidden; background-color: ${colores.fondo}; }
+    html, body { 
+      margin: 0; padding: 0; width: 100%; min-height: 100vh; overflow-x: hidden; background-color: ${colores.fondo}; 
+      scrollbar-width: thin; scrollbar-color: ${colores.marcaPrimario} ${colores.fondo}; /* Firefox */
+    }
+    
+    /* Scrollbar para Chrome, Edge y Safari */
+    ::-webkit-scrollbar { width: 12px; }
+    ::-webkit-scrollbar-track { background: ${colores.fondo}; }
+    ::-webkit-scrollbar-thumb { background-color: ${colores.marcaPrimario}; border-radius: 6px; border: 3px solid ${colores.fondo}; }
+    ::-webkit-scrollbar-thumb:hover { background-color: ${colores.marcaHover}; }
+
     #root { max-width: 100% !important; width: 100%; margin: 0; padding: 0; text-align: left; }
     * { box-sizing: border-box; }
     .btn-nav { position: relative; display: inline-block; transition: color 0.3s ease; }
@@ -234,6 +255,7 @@ function App() {
     .grid-materias { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; }
     .mapa-contenedor { width: 100%; height: 350px; background-color: #ffffff !important; }
     .mapa-contenedor iframe { width: 100%; height: 100%; border: 0; background-color: transparent; }
+    
     @media (max-width: 768px) {
       .header-nav { flex-direction: column !important; padding: 15px !important; gap: 15px !important; text-align: center; }
       .botones-nav { flex-wrap: wrap !important; justify-content: center !important; }
@@ -242,6 +264,7 @@ function App() {
       .barra-checkout { flex-direction: column !important; padding: 15px !important; gap: 10px; text-align: center; }
       .botones-footer { flex-direction: column !important; width: 100%; }
       .botones-footer a { width: 100%; justify-content: center; }
+      main { padding-top: 180px !important; } /* Ajuste extra para móviles porque el header fijo es más alto */
     }
   `;
 
@@ -291,26 +314,26 @@ function App() {
   // PANTALLA 3: RENDERIZADO PRINCIPAL
   // ==========================================
   return (
-    <div style={{ backgroundColor: colores.fondo, color: colores.textoPrincipal, minHeight: '100vh', transition: 'all 0.3s ease', fontFamily: 'Segoe UI, Roboto, Helvetica, Arial, sans-serif', paddingBottom: materiasSeleccionadas.length > 0 ? '130px' : '0', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <div style={{ backgroundColor: colores.fondo, color: colores.textoPrincipal, minHeight: '100vh', transition: 'all 0.3s ease', fontFamily: 'Segoe UI, Roboto, Helvetica, Arial, sans-serif', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       
       <style>{estilosCSS}</style>
 
-      {/* ENCABEZADO */}
-      <header className="header-nav" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 40px', backgroundColor: colores.tarjeta, borderBottom: `2px solid ${colores.marcaPrimario}`, position: 'sticky', top: 0, zIndex: 1000, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+      {/* ENCABEZADO FIJO */}
+      <header className="header-nav" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 40px', backgroundColor: colores.tarjeta, borderBottom: `2px solid ${colores.marcaPrimario}`, position: 'fixed', top: 0, left: 0, right: 0, width: '100%', zIndex: 1000, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           <img src="/logo.png" alt="Logo El Salón D' San Diego" style={{ height: '80px', borderRadius: '8px' }} />
         </div>
         
         <nav className="botones-nav" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-          <button className={`btn-nav ${vistaActual === 'home' ? 'activo' : ''}`} style={estiloBotonNav} onClick={function() { setVistaActual('home') }}>Inicio</button>
-          <button className={`btn-nav ${vistaActual === 'clases' ? 'activo' : ''}`} style={estiloBotonNav} onClick={function() { setVistaActual('clases') }}>Materias</button>
-          <button className={`btn-nav ${vistaActual === 'conocenos' ? 'activo' : ''}`} style={estiloBotonNav} onClick={function() { setVistaActual('conocenos') }}>Conócenos</button>
+          <button className={`btn-nav ${vistaActual === 'home' ? 'activo' : ''}`} style={estiloBotonNav} onClick={() => cambiarVistaConMemoria('home')}>Inicio</button>
+          <button className={`btn-nav ${vistaActual === 'clases' ? 'activo' : ''}`} style={estiloBotonNav} onClick={() => cambiarVistaConMemoria('clases')}>Materias</button>
+          <button className={`btn-nav ${vistaActual === 'conocenos' ? 'activo' : ''}`} style={estiloBotonNav} onClick={() => cambiarVistaConMemoria('conocenos')}>Conócenos</button>
           <button onClick={cambiarTema} style={{ padding: '6px 14px', borderRadius: '20px', border: `1px solid ${colores.marcaPrimario}`, backgroundColor: modoOscuro ? colores.marcaPrimario : 'transparent', color: modoOscuro ? 'white' : colores.marcaPrimario, cursor: 'pointer', fontWeight: 'bold', marginLeft: '5px' }}>{modoOscuro ? '☀️ Claro' : '🌙 Oscuro'}</button>
         </nav>
       </header>
 
       {/* CUERPO PRINCIPAL */}
-      <main style={{ padding: '30px 15px', maxWidth: '1100px', margin: '0 auto', flexGrow: 1, width: '100%' }}>
+      <main style={{ paddingTop: '130px', paddingBottom: materiasSeleccionadas.length > 0 ? '130px' : '30px', paddingLeft: '15px', paddingRight: '15px', maxWidth: '1100px', margin: '0 auto', flexGrow: 1, width: '100%' }}>
         {vistaActual === 'home' && (
           <div style={{ animation: 'fadeIn 0.5s' }}>
             <div style={{ textAlign: 'center', padding: '10px 0 30px 0' }}>
@@ -359,17 +382,16 @@ function App() {
           </div>
         )}
 
-        {/* CORRECCIÓN DE CENTRADO EN VISTA "CONÓCENOS" */}
         {vistaActual === 'conocenos' && (
           <div style={{ animation: 'fadeIn 0.5s' }}>
             <h2 className="titulo-hero" style={{ fontSize: '2.5rem', color: colores.marcaPrimario, textAlign: 'center', marginBottom: '30px' }}>Nuestro Equipo Docente</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '25px', maxWidth: '800px', margin: '0 auto' }}>
               {profesores.map(function(profesor) {
                 return (
-                  <div key={profesor.id} style={{ width: '100%', maxWidth: '800px', backgroundColor: colores.tarjeta, borderLeft: `5px solid ${colores.marcaPrimario}`, borderRadius: '8px', padding: '25px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
-                    <h3 style={{ fontSize: '1.5rem', margin: '0 0 10px 0', color: colores.textoPrincipal }}>{profesor.nombre}</h3>
-                    <p style={{ display: 'inline-block', backgroundColor: colores.marcaPrimario, color: 'white', padding: '5px 12px', borderRadius: '15px', fontSize: '0.85rem', fontWeight: 'bold', margin: '0 0 15px 0' }}>{profesor.especialidad}</p>
-                    <p style={{ margin: 0, color: colores.textoSecundario, fontSize: '1rem', lineHeight: '1.5' }}>{profesor.exp}</p>
+                  <div key={profesor.id} style={{ backgroundColor: colores.tarjeta, borderTop: `5px solid ${colores.marcaPrimario}`, borderRadius: '10px', padding: '30px', boxShadow: '0 6px 12px rgba(0,0,0,0.08)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <h3 style={{ fontSize: '1.6rem', margin: '0 0 12px 0', color: colores.textoPrincipal }}>{profesor.nombre}</h3>
+                    <p style={{ display: 'inline-block', backgroundColor: colores.marcaPrimario, color: 'white', padding: '6px 16px', borderRadius: '20px', fontSize: '0.9rem', fontWeight: 'bold', margin: '0 0 18px 0' }}>{profesor.especialidad}</p>
+                    <p style={{ margin: 0, color: colores.textoSecundario, fontSize: '1.05rem', lineHeight: '1.6' }}>{profesor.exp}</p>
                   </div>
                 );
               })}
