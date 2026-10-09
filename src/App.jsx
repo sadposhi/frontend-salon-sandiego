@@ -112,14 +112,11 @@ function App() {
   const [categoriasMaterias, setCategoriasMaterias] = useState([]);
   const [profesores, setProfesores] = useState([]);
 
-  // ESTADOS Y REFS AVANZADOS
   const [estaOnline, setEstaOnline] = useState(navigator.onLine);
   const posicionesScroll = useRef({ home: 0, clases: 0, conocenos: 0 });
 
-  // URL DE TU BACKEND EN RENDER
   const URL_BACKEND = "https://backend-salon-sandiego.onrender.com";
 
-  // Efecto para escuchar si el internet se cae o regresa
   useEffect(() => {
     const manejarOnline = () => setEstaOnline(true);
     const manejarOffline = () => setEstaOnline(false);
@@ -133,7 +130,6 @@ function App() {
     };
   }, []);
 
-  // Efecto que restaura el scroll al cambiar de vista
   useEffect(() => {
     window.scrollTo({ top: posicionesScroll.current[vistaActual], behavior: 'instant' });
   }, [vistaActual]);
@@ -238,10 +234,9 @@ function App() {
   const estilosCSS = `
     html, body { 
       margin: 0; padding: 0; width: 100%; min-height: 100vh; overflow-x: hidden; background-color: ${colores.fondo}; 
-      scrollbar-width: thin; scrollbar-color: ${colores.marcaPrimario} ${colores.fondo}; /* Firefox */
+      scrollbar-width: thin; scrollbar-color: ${colores.marcaPrimario} ${colores.fondo}; 
     }
     
-    /* Scrollbar para Chrome, Edge y Safari */
     ::-webkit-scrollbar { width: 12px; }
     ::-webkit-scrollbar-track { background: ${colores.fondo}; }
     ::-webkit-scrollbar-thumb { background-color: ${colores.marcaPrimario}; border-radius: 6px; border: 3px solid ${colores.fondo}; }
@@ -249,13 +244,27 @@ function App() {
 
     #root { max-width: 100% !important; width: 100%; margin: 0; padding: 0; text-align: left; }
     * { box-sizing: border-box; }
+    
     .btn-nav { position: relative; display: inline-block; transition: color 0.3s ease; }
     .btn-nav::after { content: ''; position: absolute; bottom: 0px; left: 0; width: 100%; height: 3px; background-color: ${colores.marcaPrimario}; border-radius: 2px; transform: scaleX(0); transform-origin: center; transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1); }
     .btn-nav.activo::after { transform: scaleX(1); }
+    
     .grid-materias { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; }
+    
     .mapa-contenedor { width: 100%; height: 350px; background-color: #ffffff !important; }
     .mapa-contenedor iframe { width: 100%; height: 100%; border: 0; background-color: transparent; }
     
+    /* Configuración del contenedor principal separada de los estilos en línea */
+    .main-content {
+      padding-top: 130px;
+      padding-left: 15px;
+      padding-right: 15px;
+      max-width: 1100px;
+      margin: 0 auto;
+      flex-grow: 1;
+      width: 100%;
+    }
+
     @media (max-width: 768px) {
       .header-nav { flex-direction: column !important; padding: 15px !important; gap: 15px !important; text-align: center; }
       .botones-nav { flex-wrap: wrap !important; justify-content: center !important; }
@@ -264,7 +273,9 @@ function App() {
       .barra-checkout { flex-direction: column !important; padding: 15px !important; gap: 10px; text-align: center; }
       .botones-footer { flex-direction: column !important; width: 100%; }
       .botones-footer a { width: 100%; justify-content: center; }
-      main { padding-top: 180px !important; } /* Ajuste extra para móviles porque el header fijo es más alto */
+      
+      /* Ajuste dinámico de la altura para celulares */
+      .main-content { padding-top: 240px !important; } 
     }
   `;
 
@@ -279,7 +290,7 @@ function App() {
           <IconoSinConexion />
           <h1 style={{ color: colores.marcaPrimario, marginTop: '20px', fontSize: '2rem' }}>Sin conexión a Internet</h1>
           <p style={{ color: colores.textoSecundario, fontSize: '1.2rem', maxWidth: '450px', lineHeight: '1.6' }}>
-            Por favor, revisa tu conexión Wi-Fi o datos móviles. Te estamos esperando para ayudarte a cursar tus materias con éxito.
+            Por favor, revisa tu conexión Wi-Fi o datos móviles. Te estamos esperando para ayudarte a cursar tus materias con éxito!
           </p>
         </div>
       </div>
@@ -332,8 +343,8 @@ function App() {
         </nav>
       </header>
 
-      {/* CUERPO PRINCIPAL */}
-      <main style={{ paddingTop: '130px', paddingBottom: materiasSeleccionadas.length > 0 ? '130px' : '30px', paddingLeft: '15px', paddingRight: '15px', maxWidth: '1100px', margin: '0 auto', flexGrow: 1, width: '100%' }}>
+      {/* CUERPO PRINCIPAL CON CLASE DINÁMICA */}
+      <main className="main-content" style={{ paddingBottom: materiasSeleccionadas.length > 0 ? '130px' : '30px' }}>
         {vistaActual === 'home' && (
           <div style={{ animation: 'fadeIn 0.5s' }}>
             <div style={{ textAlign: 'center', padding: '10px 0 30px 0' }}>
