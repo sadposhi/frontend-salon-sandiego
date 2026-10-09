@@ -1,5 +1,108 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { motion } from 'framer-motion';
 
+// ==========================================
+// COMPONENTE DE ANIMACIÓN: BlurText
+// ==========================================
+const buildKeyframes = (from, steps) => {
+  const keys = new Set([...Object.keys(from), ...steps.flatMap(s => Object.keys(s))]);
+  const keyframes = {};
+  keys.forEach(k => {
+    keyframes[k] = [from[k], ...steps.map(s => s[k])];
+  });
+  return keyframes;
+};
+
+const BlurText = ({
+  text = '',
+  delay = 200,
+  className = '',
+  animateBy = 'words',
+  direction = 'top',
+  threshold = 0.1,
+  rootMargin = '0px',
+  animationFrom,
+  animationTo,
+  easing = t => t,
+  onAnimationComplete,
+  stepDuration = 0.35
+}) => {
+  const elements = animateBy === 'words' ? text.split(' ') : text.split('');
+  const [inView, setInView] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.unobserve(ref.current);
+        }
+      },
+      { threshold, rootMargin }
+    );
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [threshold, rootMargin]);
+
+  const defaultFrom = useMemo(
+    () =>
+      direction === 'top' ? { filter: 'blur(10px)', opacity: 0, y: -50 } : { filter: 'blur(10px)', opacity: 0, y: 50 },
+    [direction]
+  );
+
+  const defaultTo = useMemo(
+    () => [
+      {
+        filter: 'blur(5px)',
+        opacity: 0.5,
+        y: direction === 'top' ? 5 : -5
+      },
+      { filter: 'blur(0px)', opacity: 1, y: 0 }
+    ],
+    [direction]
+  );
+
+  const fromSnapshot = animationFrom ?? defaultFrom;
+  const toSnapshots = animationTo ?? defaultTo;
+
+  const stepCount = toSnapshots.length + 1;
+  const totalDuration = stepDuration * (stepCount - 1);
+  const times = Array.from({ length: stepCount }, (_, i) => (stepCount === 1 ? 0 : i / (stepCount - 1)));
+
+  return (
+    <p ref={ref} className={className} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
+      {elements.map((segment, index) => {
+        const animateKeyframes = buildKeyframes(fromSnapshot, toSnapshots);
+        const spanTransition = {
+          duration: totalDuration,
+          times,
+          delay: (index * delay) / 1000
+        };
+        spanTransition.ease = easing;
+
+        return (
+          <motion.span
+            className="inline-block will-change-[transform,filter,opacity]"
+            key={index}
+            initial={fromSnapshot}
+            animate={inView ? animateKeyframes : fromSnapshot}
+            transition={spanTransition}
+            onAnimationComplete={index === elements.length - 1 ? onAnimationComplete : undefined}
+          >
+            {segment === ' ' ? '\u00A0' : segment}
+            {animateBy === 'words' && index < elements.length - 1 && '\u00A0'}
+          </motion.span>
+        );
+      })}
+    </p>
+  );
+};
+
+// ==========================================
+// APLICACIÓN PRINCIPAL
+// ==========================================
 function App() {
   const [vistaActual, setVistaActual] = useState('home');
   const [modoOscuro, setModoOscuro] = useState(false);
@@ -100,6 +203,25 @@ function App() {
 
   // ESTILOS RESPONSIVOS Y ANIMACIÓN DEL SUBRAYADO
   const estilosCSS = `
+    /* === RESETEO GLOBAL PARA ELIMINAR BORDES OSCUROS Y OCUPAR EL 100% === */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-color: ${colores.fondo};
+    }
+    
+    #root {
+      max-width: 100% !important; /* Fuerza a romper el límite de 1280px de Vite */
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      text-align: left;
+    }
+    /* ==================================================================== */
+
     * {
       box-sizing: border-box;
     }
@@ -134,11 +256,10 @@ function App() {
       gap: 30px;
     }
 
-    /* Solución de legibilidad para el iframe de Google Maps */
     .mapa-contenedor {
       width: 100%;
       height: 350px;
-      background-color: #ffffff !important; /* Forza fondo blanco detrás del mapa para mantener contraste */
+      background-color: #ffffff !important; 
     }
     
     .mapa-contenedor iframe {
@@ -182,14 +303,39 @@ function App() {
     }
   `;
 
+  // ==========================================
+  // PANTALLA DE CARGA CON ANIMACIÓN BLURTEXT
+  // ==========================================
   if (cargando) {
     return (
-      <div style={{ backgroundColor: colores.fondo, color: colores.textoPrincipal, minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: 'Segoe UI, Roboto, Helvetica, Arial, sans-serif' }}>
-        <h2>Conectando con la base de datos de El Salón...</h2>
+      <div style={{ backgroundColor: colores.fondo, color: colores.textoPrincipal, minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', fontFamily: 'Segoe UI, Roboto, Helvetica, Arial, sans-serif' }}>
+        <style>{estilosCSS}</style> {/* Inyectamos el reseteo aquí también para que el fondo aplique en la carga */}
+        <img src="/logo.png" alt="Logo El Salón D' San Diego" style={{ height: '120px', marginBottom: '30px', borderRadius: '15px', opacity: 0.9 }} />
+        <BlurText
+          text="Conectando con la base de datos de El Salón..."
+          delay={150}
+          animateBy="words"
+          direction="top"
+          className="texto-carga-animado"
+        />
+        <style>
+          {`
+            .texto-carga-animado {
+              font-size: 1.5rem;
+              font-weight: 600;
+              color: ${colores.marcaPrimario};
+              text-align: center;
+              max-width: 80%;
+            }
+          `}
+        </style>
       </div>
     );
   }
 
+  // ==========================================
+  // RENDERIZADO PRINCIPAL DE LA PÁGINA
+  // ==========================================
   return (
     <div style={{ backgroundColor: colores.fondo, color: colores.textoPrincipal, minHeight: '100vh', transition: 'all 0.3s ease', fontFamily: 'Segoe UI, Roboto, Helvetica, Arial, sans-serif', paddingBottom: materiasSeleccionadas.length > 0 ? '130px' : '0', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       
@@ -224,6 +370,7 @@ function App() {
       </header>
 
       {/* CUERPO PRINCIPAL */}
+      {/* Mantenemos el maxWidth en 1100px para que el texto sea legible y no se estire de esquina a esquina, pero el fondo y encabezado/pie sí lo harán */}
       <main style={{ padding: '30px 15px', maxWidth: '1100px', margin: '0 auto', flexGrow: 1, width: '100%' }}>
         
         {vistaActual === 'home' && (
@@ -242,8 +389,7 @@ function App() {
               <div className="mapa-contenedor">
                 <iframe 
                   src="https://maps.google.com/maps?q=Centro%20Comercial%20Plaza%20Esmeralda%20San%20Diego&t=&z=16&ie=UTF8&iwloc=&output=embed" 
-                  allowFullScreen="" loading="lazy" referrerPolicy="no-referrer-when-downgrade"
-                  title="Mapa Centro Comercial Plaza Esmeralda">
+                  width="100%" height="100%" style={{ border: 0 }} allowFullScreen="" loading="lazy" referrerPolicy="no-referrer-when-downgrade">
                 </iframe>
               </div>
             </div>
@@ -320,7 +466,7 @@ function App() {
         </div>
       </footer>
 
-      {/* BOTÓN FLOTANTE GENERAL DE WHATSAPP (Con el ícono SVG puro) */}
+      {/* BOTÓN FLOTANTE GENERAL DE WHATSAPP */}
       <div 
         onClick={procesarSolicitudGeneral}
         style={{ 
