@@ -1,104 +1,5 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { motion } from 'framer-motion';
-
-// ==========================================
-// COMPONENTE DE ANIMACIÓN: BlurText
-// ==========================================
-const buildKeyframes = (from, steps) => {
-  const keys = new Set([...Object.keys(from), ...steps.flatMap(s => Object.keys(s))]);
-  const keyframes = {};
-  keys.forEach(k => {
-    keyframes[k] = [from[k], ...steps.map(s => s[k])];
-  });
-  return keyframes;
-};
-
-const BlurText = ({
-  text = '',
-  delay = 200,
-  className = '',
-  animateBy = 'words',
-  direction = 'top',
-  threshold = 0.1,
-  rootMargin = '0px',
-  animationFrom,
-  animationTo,
-  easing = t => t,
-  onAnimationComplete,
-  stepDuration = 0.35
-}) => {
-  const elements = animateBy === 'words' ? text.split(' ') : text.split('');
-  const [inView, setInView] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    if (!ref.current) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          observer.unobserve(ref.current);
-        }
-      },
-      { threshold, rootMargin }
-    );
-    observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [threshold, rootMargin]);
-
-  const defaultFrom = useMemo(
-    () =>
-      direction === 'top' ? { filter: 'blur(10px)', opacity: 0, y: -50 } : { filter: 'blur(10px)', opacity: 0, y: 50 },
-    [direction]
-  );
-
-  const defaultTo = useMemo(
-    () => [
-      {
-        filter: 'blur(5px)',
-        opacity: 0.5,
-        y: direction === 'top' ? 5 : -5
-      },
-      { filter: 'blur(0px)', opacity: 1, y: 0 }
-    ],
-    [direction]
-  );
-
-  const fromSnapshot = animationFrom ?? defaultFrom;
-  const toSnapshots = animationTo ?? defaultTo;
-
-  const stepCount = toSnapshots.length + 1;
-  const totalDuration = stepDuration * (stepCount - 1);
-  const times = Array.from({ length: stepCount }, (_, i) => (stepCount === 1 ? 0 : i / (stepCount - 1)));
-
-  return (
-    <p ref={ref} className={className} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
-      {elements.map((segment, index) => {
-        const animateKeyframes = buildKeyframes(fromSnapshot, toSnapshots);
-        const spanTransition = {
-          duration: totalDuration,
-          times,
-          delay: (index * delay) / 1000
-        };
-        spanTransition.ease = easing;
-
-        return (
-          <motion.span
-            className="inline-block will-change-[transform,filter,opacity]"
-            key={index}
-            initial={fromSnapshot}
-            animate={inView ? animateKeyframes : fromSnapshot}
-            transition={spanTransition}
-            onAnimationComplete={index === elements.length - 1 ? onAnimationComplete : undefined}
-          >
-            {segment === ' ' ? '\u00A0' : segment}
-            {animateBy === 'words' && index < elements.length - 1 && '\u00A0'}
-          </motion.span>
-        );
-      })}
-    </p>
-  );
-};
+import { useState, useEffect, useRef } from 'react';
+import LatticeLoader from './LatticeLoader'; // <-- Importación de tu nuevo loader
 
 // ==========================================
 // APLICACIÓN PRINCIPAL
@@ -270,7 +171,7 @@ function App() {
         padding: 15px 10px 10px 10px !important; 
         gap: 15px !important; 
         text-align: center; 
-        position: relative; /* Clave para anclar el botón de tema absolute */
+        position: relative;
       }
       
       .controles-header { 
@@ -289,7 +190,6 @@ function App() {
         padding: 6px 10px !important; 
       }
       
-      /* MAGIA AQUÍ: Botón de modo oscuro a la esquina superior derecha solo en tlf */
       .btn-tema { 
         position: absolute !important; 
         top: 20px !important; 
@@ -305,7 +205,6 @@ function App() {
       .botones-footer { flex-direction: column !important; width: 100%; }
       .botones-footer a { width: 100%; justify-content: center; }
       
-      /* Como el header redujo su altura, ajustamos la separación del contenido */
       .main-content { padding-top: 165px !important; } 
     }
   `;
@@ -329,25 +228,35 @@ function App() {
   }
 
   // ==========================================
-  // PANTALLA 2: DE CARGA CON ANIMACIÓN BLURTEXT
+  // PANTALLA 2: DE CARGA CON NUEVO LATTICELOADER
   // ==========================================
   if (cargando) {
     return (
       <div style={{ backgroundColor: colores.fondo, color: colores.textoPrincipal, minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', fontFamily: 'Segoe UI, Roboto, Helvetica, Arial, sans-serif' }}>
         <style>{estilosCSS}</style> 
         <img src="/logo.png" alt="Logo El Salón D' San Diego" style={{ height: '120px', marginBottom: '30px', borderRadius: '15px', opacity: 0.9 }} />
-        <BlurText
-          text="Conectando con la base de datos de El Salón..."
-          delay={150}
-          animateBy="words"
-          direction="top"
-          className="texto-carga-animado"
+        
+        {/* NUEVO LATTICELOADER */}
+        <LatticeLoader
+          status="working"
+          label="Conectando con el servidor..."
+          doneLabel="Conectado en"
+          errorLabel="Error después de"
+          pattern="orbit"
+          grid={3}
+          shape="round"
+          doneColor="#22c55e"
+          errorColor="#ef4444"
+          cellSize={6}
+          gap={2}
+          fontSize={14}
+          step={90}
+          idleOpacity={0.15}
+          glow={false}
+          glowColor=""
+          showTimer
+          color={colores.marcaPrimario}
         />
-        <style>
-          {`
-            .texto-carga-animado { font-size: 1.5rem; font-weight: 600; color: ${colores.marcaPrimario}; text-align: center; max-width: 80%; }
-          `}
-        </style>
       </div>
     );
   }
@@ -366,7 +275,6 @@ function App() {
           <img src="/logo.png" alt="Logo El Salón D' San Diego" style={{ height: '80px', borderRadius: '8px' }} />
         </div>
         
-        {/* Contenedor extra añadido para independizar la navegación del botón de tema en PC y Móvil */}
         <div className="controles-header" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
           <nav className="botones-nav" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
             <button className={`btn-nav ${vistaActual === 'home' ? 'activo' : ''}`} style={estiloBotonNav} onClick={() => cambiarVistaConMemoria('home')}>Inicio</button>
