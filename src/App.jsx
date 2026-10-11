@@ -1,5 +1,105 @@
-import { useState, useEffect, useRef } from 'react';
-import LatticeLoader from './LatticeLoader'; // <-- Importación de tu nuevo loader
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import LatticeLoader from './LatticeLoader';
+
+// ==========================================
+// COMPONENTE DE ANIMACIÓN: BlurText
+// ==========================================
+const buildKeyframes = (from, steps) => {
+  const keys = new Set([...Object.keys(from), ...steps.flatMap(s => Object.keys(s))]);
+  const keyframes = {};
+  keys.forEach(k => {
+    keyframes[k] = [from[k], ...steps.map(s => s[k])];
+  });
+  return keyframes;
+};
+
+const BlurText = ({
+  text = '',
+  delay = 200,
+  className = '',
+  animateBy = 'words',
+  direction = 'top',
+  threshold = 0.1,
+  rootMargin = '0px',
+  animationFrom,
+  animationTo,
+  easing = t => t,
+  onAnimationComplete,
+  stepDuration = 0.35
+}) => {
+  const elements = animateBy === 'words' ? text.split(' ') : text.split('');
+  const [inView, setInView] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.unobserve(ref.current);
+        }
+      },
+      { threshold, rootMargin }
+    );
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [threshold, rootMargin]);
+
+  const defaultFrom = useMemo(
+    () =>
+      direction === 'top' ? { filter: 'blur(10px)', opacity: 0, y: -50 } : { filter: 'blur(10px)', opacity: 0, y: 50 },
+    [direction]
+  );
+
+  const defaultTo = useMemo(
+    () => [
+      {
+        filter: 'blur(5px)',
+        opacity: 0.5,
+        y: direction === 'top' ? 5 : -5
+      },
+      { filter: 'blur(0px)', opacity: 1, y: 0 }
+    ],
+    [direction]
+  );
+
+  const fromSnapshot = animationFrom ?? defaultFrom;
+  const toSnapshots = animationTo ?? defaultTo;
+
+  const stepCount = toSnapshots.length + 1;
+  const totalDuration = stepDuration * (stepCount - 1);
+  const times = Array.from({ length: stepCount }, (_, i) => (stepCount === 1 ? 0 : i / (stepCount - 1)));
+
+  return (
+    <p ref={ref} className={className} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
+      {elements.map((segment, index) => {
+        const animateKeyframes = buildKeyframes(fromSnapshot, toSnapshots);
+        const spanTransition = {
+          duration: totalDuration,
+          times,
+          delay: (index * delay) / 1000
+        };
+        spanTransition.ease = easing;
+
+        return (
+          <motion.span
+            className="inline-block will-change-[transform,filter,opacity]"
+            key={index}
+            initial={fromSnapshot}
+            animate={inView ? animateKeyframes : fromSnapshot}
+            transition={spanTransition}
+            onAnimationComplete={index === elements.length - 1 ? onAnimationComplete : undefined}
+          >
+            {segment === ' ' ? '\u00A0' : segment}
+            {animateBy === 'words' && index < elements.length - 1 && '\u00A0'}
+          </motion.span>
+        );
+      })}
+    </p>
+  );
+};
 
 // ==========================================
 // APLICACIÓN PRINCIPAL
@@ -14,7 +114,10 @@ function App() {
   const [profesores, setProfesores] = useState([]);
 
   const [estaOnline, setEstaOnline] = useState(navigator.onLine);
+  
   const posicionesScroll = useRef({ home: 0, clases: 0, conocenos: 0 });
+  const footerRef = useRef(null);
+  const [footerVisible, setFooterVisible] = useState(false);
 
   const URL_BACKEND = "https://backend-salon-sandiego.onrender.com";
 
@@ -34,6 +137,18 @@ function App() {
   useEffect(() => {
     window.scrollTo({ top: posicionesScroll.current[vistaActual], behavior: 'instant' });
   }, [vistaActual]);
+
+  useEffect(() => {
+    if (!footerRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setFooterVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 } 
+    );
+    observer.observe(footerRef.current);
+    return () => observer.disconnect();
+  }, [cargando]); 
 
   useEffect(function() {
     fetch(URL_BACKEND + '/api/materias')
@@ -89,6 +204,21 @@ function App() {
   const procesarSolicitudGeneral = function() {
     let mensaje = "¡Hola! Vengo de su página web. Me gustaría recibir información general sobre las clases, materias disponibles y sus horarios. ¡Quedo atento(a)!";
     window.open("https://wa.me/584120298130?text=" + encodeURIComponent(mensaje), '_blank');
+  };
+
+  // NUEVA FUNCIÓN PARA INSTAGRAM
+  const procesarSolicitudInstagram = function(e) {
+    e.preventDefault(); // Evita que el botón recargue la página
+    const mensaje = "¡Hola! Vengo de su página web. Me gustaría recibir información general sobre las clases, materias disponibles y sus horarios. ¡Quedo atento(a)!";
+    
+    // Copiamos al portapapeles y luego abrimos Instagram
+    navigator.clipboard.writeText(mensaje).then(function() {
+      alert("¡Mensaje copiado! Solo pégalo en nuestro chat de Instagram 📸");
+      window.open("https://ig.me/m/el.salon.de.sandiego", '_blank');
+    }).catch(function() {
+      // Si el navegador bloquea el portapapeles, igual abrimos el chat
+      window.open("https://ig.me/m/el.salon.de.sandiego", '_blank');
+    });
   };
 
   const colores = {
@@ -228,7 +358,7 @@ function App() {
   }
 
   // ==========================================
-  // PANTALLA 2: DE CARGA CON NUEVO LATTICELOADER
+  // PANTALLA 2: DE CARGA CON LATTICELOADER
   // ==========================================
   if (cargando) {
     return (
@@ -236,7 +366,6 @@ function App() {
         <style>{estilosCSS}</style> 
         <img src="/logo.png" alt="Logo El Salón D' San Diego" style={{ height: '120px', marginBottom: '30px', borderRadius: '15px', opacity: 0.9 }} />
         
-        {/* NUEVO LATTICELOADER */}
         <LatticeLoader
           status="working"
           label="Conectando con el servidor..."
@@ -287,7 +416,7 @@ function App() {
         </div>
       </header>
 
-      {/* CUERPO PRINCIPAL CON CLASE DINÁMICA */}
+      {/* CUERPO PRINCIPAL */}
       <main className="main-content" style={{ paddingBottom: materiasSeleccionadas.length > 0 ? '130px' : '30px' }}>
         {vistaActual === 'home' && (
           <div style={{ animation: 'fadeIn 0.5s' }}>
@@ -356,7 +485,7 @@ function App() {
       </main>
 
       {/* PIE DE PÁGINA */}
-      <footer style={{ backgroundColor: colores.tarjeta, borderTop: `1px solid ${colores.borde}`, padding: '30px 15px', marginTop: 'auto' }}>
+      <footer ref={footerRef} style={{ backgroundColor: colores.tarjeta, borderTop: `1px solid ${colores.borde}`, padding: '30px 15px', marginTop: 'auto' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto', textAlign: 'center' }}>
           <h2 style={{ color: colores.marcaPrimario, marginBottom: '20px', fontSize: '1.8rem' }}>¡Inscríbete hoy mismo!</h2>
           <div className="botones-footer" style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
@@ -364,15 +493,39 @@ function App() {
               <IconoWhatsapp /> 0412-029.8130
             </a>
             <a href="tel:+584120298130" style={{ textDecoration: 'none', backgroundColor: colores.marcaPrimario, color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>📞 Llamar</a>
-            <a href="https://instagram.com/el.salon.de.sandiego" target="_blank" rel="noreferrer" style={{ textDecoration: 'none', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+            
+            {/* BOTÓN DE INSTAGRAM CONECTADO A LA NUEVA FUNCIÓN */}
+            <a href="#" onClick={procesarSolicitudInstagram} style={{ textDecoration: 'none', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
               <IconoInstagram /> @el.salon.de.sandiego
             </a>
           </div>
         </div>
       </footer>
 
-      {/* BOTÓN FLOTANTE GENERAL DE WHATSAPP */}
-      <div onClick={procesarSolicitudGeneral} style={{ position: 'fixed', right: '20px', bottom: materiasSeleccionadas.length > 0 ? '140px' : '20px', backgroundColor: '#25D366', color: 'white', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.3)', cursor: 'pointer', zIndex: 1500, transition: 'bottom 0.3s ease' }}>
+      {/* BOTÓN FLOTANTE DE WHATSAPP */}
+      <div 
+        onClick={procesarSolicitudGeneral} 
+        style={{ 
+          position: 'fixed', 
+          right: '20px', 
+          bottom: materiasSeleccionadas.length > 0 ? '140px' : '20px', 
+          backgroundColor: '#25D366', 
+          color: 'white', 
+          width: '60px', 
+          height: '60px', 
+          borderRadius: '50%', 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          boxShadow: '0 4px 10px rgba(0,0,0,0.3)', 
+          cursor: 'pointer', 
+          zIndex: 1500, 
+          transition: 'all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55)',
+          transform: footerVisible ? 'scale(0.2) translateY(100px)' : 'scale(1) translateY(0)',
+          opacity: footerVisible ? 0 : 1,
+          pointerEvents: footerVisible ? 'none' : 'auto'
+        }}
+      >
         <IconoWhatsapp />
       </div>
 
