@@ -106,13 +106,10 @@ const BlurText = ({
 // ==========================================
 function App() {
   const [vistaActual, setVistaActual] = useState('home');
-  const [modoOscuro, setModoOscuro] = useState(false);
   const [materiasSeleccionadas, setMateriasSeleccionadas] = useState([]);
-
   const [cargando, setCargando] = useState(true);
   const [categoriasMaterias, setCategoriasMaterias] = useState([]);
   const [profesores, setProfesores] = useState([]);
-
   const [estaOnline, setEstaOnline] = useState(navigator.onLine);
   
   const posicionesScroll = useRef({ home: 0, clases: 0, conocenos: 0 });
@@ -120,6 +117,20 @@ function App() {
   const [footerVisible, setFooterVisible] = useState(false);
 
   const URL_BACKEND = "https://backend-salon-sandiego.onrender.com";
+
+  // INICIALIZACIÓN INTELIGENTE DEL MODO OSCURO
+  const [modoOscuro, setModoOscuro] = useState(() => {
+    // 1. Revisar si el usuario ya había guardado una preferencia
+    const temaGuardado = localStorage.getItem('tema-salon');
+    if (temaGuardado === 'oscuro') return true;
+    if (temaGuardado === 'claro') return false;
+    
+    // 2. Si es nuevo, detectar si su celular/PC está en modo oscuro
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return true;
+    }
+    return false;
+  });
 
   useEffect(() => {
     const manejarOnline = () => setEstaOnline(true);
@@ -168,8 +179,13 @@ function App() {
       });
   }, []);
 
+  // FUNCIÓN ACTUALIZADA: Cambia el estado y guarda en la memoria del navegador
   const cambiarTema = function() {
-    setModoOscuro(!modoOscuro);
+    setModoOscuro(prev => {
+      const nuevoEstado = !prev;
+      localStorage.setItem('tema-salon', nuevoEstado ? 'oscuro' : 'claro');
+      return nuevoEstado;
+    });
   };
 
   const cambiarVistaConMemoria = (nuevaVista) => {
@@ -201,22 +217,20 @@ function App() {
     window.open("https://wa.me/584120298130?text=" + encodeURIComponent(mensaje), '_blank');
   };
 
-  const procesarSolicitudGeneral = function() {
+  // FUNCIÓN ACTUALIZADA: Ahora intercepta los clics de etiquetas <a> también
+  const procesarSolicitudGeneral = function(e) {
+    if (e) e.preventDefault(); // Si viene de un enlace, evita que recargue la página
     let mensaje = "¡Hola! Vengo de su página web. Me gustaría recibir información general sobre las clases, materias disponibles y sus horarios. ¡Quedo atento(a)!";
     window.open("https://wa.me/584120298130?text=" + encodeURIComponent(mensaje), '_blank');
   };
 
-  // NUEVA FUNCIÓN PARA INSTAGRAM
   const procesarSolicitudInstagram = function(e) {
-    e.preventDefault(); // Evita que el botón recargue la página
+    e.preventDefault(); 
     const mensaje = "¡Hola! Vengo de su página web. Me gustaría recibir información general sobre las clases, materias disponibles y sus horarios. ¡Quedo atento(a)!";
-    
-    // Copiamos al portapapeles y luego abrimos Instagram
     navigator.clipboard.writeText(mensaje).then(function() {
       alert("¡Mensaje copiado! Solo pégalo en nuestro chat de Instagram 📸");
       window.open("https://ig.me/m/el.salon.de.sandiego", '_blank');
     }).catch(function() {
-      // Si el navegador bloquea el portapapeles, igual abrimos el chat
       window.open("https://ig.me/m/el.salon.de.sandiego", '_blank');
     });
   };
@@ -489,12 +503,13 @@ function App() {
         <div style={{ maxWidth: '1000px', margin: '0 auto', textAlign: 'center' }}>
           <h2 style={{ color: colores.marcaPrimario, marginBottom: '20px', fontSize: '1.8rem' }}>¡Inscríbete hoy mismo!</h2>
           <div className="botones-footer" style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
-            <a href="https://wa.me/584120298130" target="_blank" rel="noreferrer" style={{ textDecoration: 'none', backgroundColor: '#25D366', color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+            
+            {/* BOTÓN WHATSAPP CONECTADO A procesarSolicitudGeneral */}
+            <a href="#" onClick={procesarSolicitudGeneral} style={{ textDecoration: 'none', backgroundColor: '#25D366', color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
               <IconoWhatsapp /> 0412-029.8130
             </a>
-            <a href="tel:+584120298130" style={{ textDecoration: 'none', backgroundColor: colores.marcaPrimario, color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>📞 Llamar</a>
             
-            {/* BOTÓN DE INSTAGRAM CONECTADO A LA NUEVA FUNCIÓN */}
+            <a href="tel:+584120298130" style={{ textDecoration: 'none', backgroundColor: colores.marcaPrimario, color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>📞 Llamar</a>
             <a href="#" onClick={procesarSolicitudInstagram} style={{ textDecoration: 'none', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
               <IconoInstagram /> @el.salon.de.sandiego
             </a>
