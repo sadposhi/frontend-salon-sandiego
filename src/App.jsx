@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import LatticeLoader from './LatticeLoader';
+import { Analytics } from '@vercel/analytics/react'; // 1. Importación de Analytics adaptada para React
 
 // ==========================================
 // COMPONENTE DE ANIMACIÓN: BlurText
@@ -118,14 +119,10 @@ function App() {
 
   const URL_BACKEND = "https://backend-salon-sandiego.onrender.com";
 
-  // INICIALIZACIÓN INTELIGENTE DEL MODO OSCURO
   const [modoOscuro, setModoOscuro] = useState(() => {
-    // 1. Revisar si el usuario ya había guardado una preferencia
     const temaGuardado = localStorage.getItem('tema-salon');
     if (temaGuardado === 'oscuro') return true;
     if (temaGuardado === 'claro') return false;
-    
-    // 2. Si es nuevo, detectar si su celular/PC está en modo oscuro
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return true;
     }
@@ -179,7 +176,6 @@ function App() {
       });
   }, []);
 
-  // FUNCIÓN ACTUALIZADA: Cambia el estado y guarda en la memoria del navegador
   const cambiarTema = function() {
     setModoOscuro(prev => {
       const nuevoEstado = !prev;
@@ -217,9 +213,8 @@ function App() {
     window.open("https://wa.me/584120298130?text=" + encodeURIComponent(mensaje), '_blank');
   };
 
-  // FUNCIÓN ACTUALIZADA: Ahora intercepta los clics de etiquetas <a> también
   const procesarSolicitudGeneral = function(e) {
-    if (e) e.preventDefault(); // Si viene de un enlace, evita que recargue la página
+    if (e) e.preventDefault(); 
     let mensaje = "¡Hola! Vengo de su página web. Me gustaría recibir información general sobre las clases, materias disponibles y sus horarios. ¡Quedo atento(a)!";
     window.open("https://wa.me/584120298130?text=" + encodeURIComponent(mensaje), '_blank');
   };
@@ -367,6 +362,7 @@ function App() {
             Por favor, revisa tu conexión Wi-Fi o datos móviles. Te estamos esperando para ayudarte a cursar tus materias con éxito.
           </p>
         </div>
+        <Analytics />
       </div>
     );
   }
@@ -400,6 +396,7 @@ function App() {
           showTimer
           color={colores.marcaPrimario}
         />
+        <Analytics />
       </div>
     );
   }
@@ -503,12 +500,9 @@ function App() {
         <div style={{ maxWidth: '1000px', margin: '0 auto', textAlign: 'center' }}>
           <h2 style={{ color: colores.marcaPrimario, marginBottom: '20px', fontSize: '1.8rem' }}>¡Inscríbete hoy mismo!</h2>
           <div className="botones-footer" style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
-            
-            {/* BOTÓN WHATSAPP CONECTADO A procesarSolicitudGeneral */}
             <a href="#" onClick={procesarSolicitudGeneral} style={{ textDecoration: 'none', backgroundColor: '#25D366', color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
               <IconoWhatsapp /> 0412-029.8130
             </a>
-            
             <a href="tel:+584120298130" style={{ textDecoration: 'none', backgroundColor: colores.marcaPrimario, color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>📞 Llamar</a>
             <a href="#" onClick={procesarSolicitudInstagram} style={{ textDecoration: 'none', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', color: 'white', padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
               <IconoInstagram /> @el.salon.de.sandiego
@@ -556,6 +550,9 @@ function App() {
           </button>
         </div>
       )}
+
+      {/* 2. Etiqueta principal de Analytics inyectada en la app para rastrear interacciones */}
+      <Analytics />
     </div>
   );
 }
